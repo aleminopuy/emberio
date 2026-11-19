@@ -1,0 +1,152 @@
+{
+  "name": "emberio",
+  "author": "Emberio",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app",
+    "ember",
+    "mug"
+  ],
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.cjs"
+  },
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Emberio",
+    "uuid": "5da00f2a-1e57-439b-b34a-a992d40e4f26",
+    "sdkVersion": "3",
+    "manifestVersion": 2,
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": {
+      "STATUS": 1,
+      "UNIT": 2,
+      "TEMP_CUR": 3,
+      "TEMP_TARGET": 4,
+      "TEMP_MIN": 5,
+      "TEMP_MAX": 6,
+      "LIQUID_STATE": 7,
+      "LIQUID_LEVEL": 8,
+      "BATTERY": 9,
+      "CHARGING": 10,
+      "MINUTES_LEFT": 11,
+      "MUG_NAME": 12,
+      "ALERT_BATTERY": 13,
+      "ALERT_READY": 14,
+      "UNIT_PREF": 15,
+      "CMD": 20,
+      "PROTOCOL": 21
+    },
+    "companionApp": {
+      "android": {
+        "url": "https://github.com/aleminopuy/emberio/releases/latest",
+        "apps": [
+          {
+            "package": "app.emberio"
+          }
+        ]
+      }
+    },
+    "usesPermissions": [
+      {
+        "name": "LocalNetwork",
+        "reason": "To read your mug's temperature and battery from the Emberio phone app",
+        "required": true
+      }
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/menu_icon.png",
+          "menuIcon": true
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ACTION_PLUS",
+          "file": "images/action_plus.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ACTION_MINUS",
+          "file": "images/action_minus.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ACTION_MORE",
+          "file": "images/action_more.png"
+        }
+      ]
+    },
+    "plugin": {
+      "description": "Live readings from an Ember smart mug (Mug 2, Mug, Cup, Tumbler, Travel Mug) connected to the Emberio Android app: the drink's temperature, the target temperature, what the mug is doing (heating, cooling, perfect), its battery level and how many minutes of heat the battery has left. Needs the Emberio companion app running on the same phone.",
+      "script": "src/plugin/index.js",
+      "sources": [
+        {
+          "category": "drink",
+          "items": [
+            "mug"
+          ],
+          "properties": {
+            "name": [
+              "shortText",
+              "longText"
+            ],
+            "temperature": [
+              "shortText",
+              "longText",
+              "numericValue"
+            ],
+            "target_temperature": [
+              "shortText",
+              "longText",
+              "numericValue"
+            ],
+            "state": [
+              "shortText",
+              "longText"
+            ],
+            "battery_level": [
+              "numericValue",
+              "shortText",
+              "longText"
+            ],
+            "battery_time_left": [
+              "shortText",
+              "longText",
+              "numericValue"
+            ],
+            "charging": [
+              "boolean",
+              "shortText"
+            ],
+            "liquid_level": [
+              "numericValue",
+              "shortText"
+            ],
+            "updated": [
+              "timestamp"
+            ]
+          },
+          "supportsMultiple": false,
+          "callerPermissions": [],
+          "suggestedRefreshIntervalSec": 30
+        }
+      ],
+      "actions": []
+    }
+  }
+}
