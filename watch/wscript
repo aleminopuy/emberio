@@ -5,6 +5,7 @@
 # EMBERIO_DEMO=<1-5> builds a version that shows canned data instead of talking to
 # the phone. It's only for screenshots in the emulator; never ship it.
 #
+import json
 import os
 
 top = '.'
@@ -23,12 +24,15 @@ def build(ctx):
     ctx.load('pebble_sdk')
 
     demo = os.environ.get('EMBERIO_DEMO')
+    with open(ctx.path.find_node('package.json').abspath()) as f:
+        version = json.load(f)['version']
     binaries = []
 
     cached_env = ctx.env
     for platform in ctx.env.TARGET_PLATFORMS:
         ctx.env = ctx.all_envs[platform]
         ctx.set_group(ctx.env.PLATFORM_NAME)
+        ctx.env.append_value('DEFINES', 'EMBERIO_VERSION="{}"'.format(version))
         if demo:
             ctx.env.append_value('DEFINES', 'EMBERIO_DEMO={}'.format(int(demo)))
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
