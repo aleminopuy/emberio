@@ -31,7 +31,7 @@ Pebble Time: perfect, charging, no mug yet, and the menu.
 Pebble watches can't talk Bluetooth to other gadgets, so the phone does it:
 
 ```
-Ember mug ──Bluetooth LE──▶ Emberio (Android) ──PebbleKit 2──▶ Emberio watchapp
+Ember mug ──Bluetooth LE──▶ Emberio (Android) ──PebbleKit──▶ Emberio watchapp
                                   │
                                   └── 127.0.0.1:47811 ──▶ Emberio plugin (in the Pebble app) ──▶ any watchface
 ```
@@ -75,19 +75,19 @@ app's Complications, can show:
 
 ## Install
 
-You need an Android phone with the [Pebble app](https://github.com/coredevices/mobileapp) from
-Core Devices (2.0 or later for the watchface plugin), any Pebble, and an Ember mug.
+You need an Android phone with a Pebble app (Core Devices' [Pebble app](https://github.com/coredevices/mobileapp)
+is best; the original Pebble app and Gadgetbridge work too), any Pebble, and an Ember mug.
 
-1. Download `emberio.apk` and `emberio.pbw` from the
-   [latest release](https://github.com/aleminopuy/emberio/releases/latest) (or from the
-   **Build** workflow's artifacts on any commit).
+1. Download `emberio.apk` from the
+   [latest release](https://github.com/aleminopuy/emberio/releases/latest).
 2. Install the APK (allow installing from your browser or file manager when Android asks).
 3. Open Emberio, allow Bluetooth and notifications, and pair your mug: hold the button on its
    bottom until the light flashes blue, then tap **Find my mug**.
    *Close the Ember app first; the mug talks to one app at a time.*
-4. Open `emberio.pbw` on your phone and choose the Pebble app to install it on your watch. Allow
-   its **local network** permission when asked: that's the plugin reading from Emberio on the
-   same phone; nothing leaves your phone.
+4. Install the Emberio watchapp from the Pebble or Rebble appstore (search for Emberio), or open
+   `emberio.pbw` from the release with your Pebble app. In Core's Pebble app, allow its
+   **local network** permission when asked: that's the plugin reading from Emberio on the same
+   phone; nothing leaves your phone.
 5. Open Emberio on your watch.
 
 To show readings on a watchface: in the Pebble app, **Settings → Plugins → Complications**, add
@@ -110,10 +110,8 @@ next time. On the coaster it shows time to full instead.
 
 ## Mugs
 
-Written for the **Ember Mug 2**, using the Bluetooth protocol the community libraries above use
-with it. The Mug (1st gen), Cup, Tumbler and Travel Mug speak the same protocol and should work.
-None of it has been tried against a real mug yet (it was developed against the protocol and the
-Pebble emulators), so the first run on real hardware is the real test; reports welcome.
+Works with the **Ember Mug 2**. The Mug (1st gen), Cup, Tumbler and Travel Mug speak the same
+Bluetooth protocol and should work too, but haven't been tried; reports welcome.
 
 Changing the temperature needs the mug to accept writes. A mug set up in the Ember app does; a
 mug that was reset gets unlocked by Emberio automatically. If changes don't stick, set the mug
@@ -122,8 +120,10 @@ up once in the Ember app, close that app, and try again.
 ## Limitations
 
 - Android only. iOS has no way for third-party apps to talk to the Pebble app like this.
-- Needs Core's Pebble app (PebbleKit 2). Gadgetbridge and the original 2016 Pebble app aren't
-  supported.
+- With Core's Pebble app, Emberio uses PebbleKit 2. With the original Pebble app or Gadgetbridge it
+  falls back to PebbleKit Classic, which only switches on when no PebbleKit 2 app is installed.
+  That fallback is new and hasn't been tried with those apps yet. The watchface plugin needs
+  Core's Pebble app.
 - Plugins are new and still a preview in the Pebble app. Plugins can't talk to Android apps
   directly yet, so the plugin reads Emberio's state from `127.0.0.1:47811` on the phone (read-only).
 - One mug at a time.
@@ -148,13 +148,10 @@ cd android
 ./gradlew testDebugUnitTest assembleDebug   # app/build/outputs/apk/debug/app-debug.apk
 ```
 
-CI (`.github/workflows/build.yml`) builds both on every push. To release, publish a release on
-GitHub (website or app: **Releases → Draft a new release**, type a new tag such as `v1.0.1`,
-**Publish**); a few minutes later CI attaches `emberio.apk` and `emberio.pbw` to it, built from
-that tag. To sign releases with your own key (so updates install over
-the previous version), add repository secrets `EMBERIO_KEYSTORE_BASE64`,
-`EMBERIO_KEYSTORE_PASSWORD`, `EMBERIO_KEY_ALIAS` and `EMBERIO_KEY_PASSWORD`. Without them each
-build is signed with a throwaway key, and you'll need to uninstall before installing a newer one.
+CI (`.github/workflows/build.yml`) builds both on every push, and attaches `emberio.apk` and
+`emberio.pbw` to every release published on GitHub. [RELEASING.md](RELEASING.md) covers
+versions, the signing key, and publishing to the Pebble and Rebble appstores; the store
+listing text and images are in [`store/`](store/).
 
 ## Credits
 
@@ -162,3 +159,7 @@ The Ember Bluetooth protocol was worked out by the community, especially
 [python-ember-mug](https://github.com/sopelj/python-ember-mug) and
 [mugctl](https://github.com/zopieux/mugctl). Watch-to-phone messaging uses
 [PebbleKit Android 2](https://github.com/pebble-dev/PebbleKitAndroid2).
+
+## License
+
+[MIT](LICENSE).

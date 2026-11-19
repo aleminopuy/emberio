@@ -27,6 +27,8 @@ for platform in "${PLATFORMS[@]}"; do
   # and passing --vnc again would reboot it, so later installs leave it off.
   EMBERIO_DEMO=1 pebble build >/dev/null
   pebble install --emulator "$platform" --vnc >/dev/null
+  # Same time on every screenshot (the status bar shows it).
+  pebble emu-set-time --emulator "$platform" "${EMBERIO_TIME:-10:08:00}" >/dev/null
   for state in "${STATES[@]}"; do
     EMBERIO_DEMO=$state pebble build >/dev/null
     pebble install --emulator "$platform" >/dev/null
