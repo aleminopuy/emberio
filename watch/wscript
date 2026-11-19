@@ -1,0 +1,42 @@
+#
+# Builds the Emberio watchapp for every platform in package.json, and bundles the
+# watchface plugin (src/plugin/index.js, declared under "plugin" in package.json).
+#
+# EMBERIO_DEMO=<1-5> builds a version that shows canned data instead of talking to
+# the phone. It's only for screenshots in the emulator; never ship it.
+#
+import os
+
+top = '.'
+out = 'build'
+
+
+def options(ctx):
+    ctx.load('pebble_sdk')
+
+
+def configure(ctx):
+    ctx.load('pebble_sdk')
+
+
+def build(ctx):
+    ctx.load('pebble_sdk')
+
+    demo = os.environ.get('EMBERIO_DEMO')
+    binaries = []
+
+    cached_env = ctx.env
+    for platform in ctx.env.TARGET_PLATFORMS:
+        ctx.env = ctx.all_envs[platform]
+        ctx.set_group(ctx.env.PLATFORM_NAME)
+        if demo:
+            ctx.env.append_value('DEFINES', 'EMBERIO_DEMO={}'.format(int(demo)))
+        app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
+        ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')
+        binaries.append({'platform': platform, 'app_elf': app_elf})
+    ctx.env = cached_env
+
+    ctx.set_group('bundle')
+    ctx.pbl_bundle(binaries=binaries,
+                   js=ctx.path.ant_glob(['src/pkjs/**/*.js', 'src/pkjs/**/*.json']),
+                   js_entry_file='src/pkjs/index.js')
