@@ -63,7 +63,12 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.EMBERIO_KEYSTORE_BASE64 }}
         if: ${{ env.KEYSTORE_BASE64 != '' }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/emberio.jks"
+          # Forgive a pasted value with spaces or line breaks in it, or the "VALUE:" label.
+          clean=$(printf '%s' "$KEYSTORE_BASE64" | tr -d ' \t\r\n' | sed 's/^VALUE://')
+          if ! printf '%s' "$clean" | base64 -d > "$RUNNER_TEMP/emberio.jks" 2>/dev/null; then
+            echo "::error::The EMBERIO_KEYSTORE_BASE64 secret isn't a valid key (${#clean} characters once spaces are removed). Paste it again from the secrets file: the whole line after VALUE: under item 1."
+            exit 1
+          fi
           echo "EMBERIO_KEYSTORE_FILE=$RUNNER_TEMP/emberio.jks" >> "$GITHUB_ENV"
 
       - name: Test and build

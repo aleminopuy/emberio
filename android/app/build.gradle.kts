@@ -21,11 +21,12 @@ android {
     val releaseKeystore = System.getenv("EMBERIO_KEYSTORE_FILE")
     signingConfigs {
         if (releaseKeystore != null) {
+            // Trimmed: a secret pasted with a trailing space or line break would otherwise fail.
             create("release") {
                 storeFile = file(releaseKeystore)
-                storePassword = System.getenv("EMBERIO_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("EMBERIO_KEY_ALIAS")
-                keyPassword = System.getenv("EMBERIO_KEY_PASSWORD")
+                storePassword = System.getenv("EMBERIO_KEYSTORE_PASSWORD")?.trim()?.removePrefix("VALUE:")
+                keyAlias = System.getenv("EMBERIO_KEY_ALIAS")?.trim()?.removePrefix("VALUE:")
+                keyPassword = System.getenv("EMBERIO_KEY_PASSWORD")?.trim()?.removePrefix("VALUE:")
             }
         }
     }
