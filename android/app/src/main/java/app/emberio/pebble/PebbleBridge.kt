@@ -41,6 +41,20 @@ class PebbleBridge(
     private val sendSignal = Channel<Unit>(Channel.CONFLATED)
     private var closeJob: Job? = null
 
+    // Fallback for phones without a PebbleKit 2 app; see ClassicPebbleKit.
+    private val classic = ClassicPebbleKit(
+        context,
+        onMessage = { data ->
+            lastClassicMessageMs = System.currentTimeMillis()
+            onMessage(data, CLASSIC_WATCH)
+        },
+        onNack = { onAppClosed(CLASSIC_WATCH) },
+    )
+    @Volatile private var lastClassicMessageMs = 0L
+    private val _usingClassic = MutableStateFlow(false)
+    /** True when talking to the watch through PebbleKit Classic (no PebbleKit 2 app installed). */
+    val usingClassic: StateFlow<Boolean> = _usingClassic.asStateFlow()
+
     init {
         scope.launch {
             // Send on any change the watch would show.
@@ -54,6 +68,26 @@ class PebbleBridge(
                 delay(SEND_SPACING_MS)
             }
         }
+    }
+
+    /**
+     * Pick the link to the watch: PebbleKit 2 when a Pebble app supports it (Core's app), else
+     * PebbleKit Classic. Called whenever Emberio starts talking to the mug.
+     */
+    fun refreshTransport() {
+        val classicNeeded = ClassicPebbleKit.isNeeded(context)
+        if (classicNeeded) {
+            classic.start()
+        } else {
+            classic.stop()
+            _openOn.update { it - CLASSIC_WATCH }
+        }
+        _usingClassic.value = classicNeeded
+    }
+
+    fun stopTransport() {
+        classic.stop()
+        _openOn.update { it - CLASSIC_WATCH }
     }
 
     fun onAppOpened(watch: WatchIdentifier) {
@@ -99,6 +133,10 @@ class PebbleBridge(
 
     /** Open the watchapp on every connected watch. */
     suspend fun openOnWatch(): Boolean {
+        if (classic.running) {
+            classic.startAppOnWatch()
+            return true
+        }
         val results = senderOrCreate().startAppOnTheWatch(WatchProtocol.WATCHAPP_UUID) ?: return false
         return results.values.any { it == TransmissionResult.Success }
     }
@@ -107,9 +145,21 @@ class PebbleBridge(
         sender ?: DefaultPebbleSender(context).also { sender = it }
 
     private suspend fun sendState() {
-        val watches = _openOn.value.toList()
-        if (watches.isEmpty()) return
+        val open = _openOn.value
+        if (open.isEmpty()) return
         val message = WatchProtocol.stateMessage(repository.state.value, localeUnit())
+
+        if (CLASSIC_WATCH in open) {
+            // Classic has no "app closed" event; a refused message (NACK) or a long silence ends it.
+            if (!classic.running || System.currentTimeMillis() - lastClassicMessageMs > CLASSIC_IDLE_MS) {
+                _openOn.update { it - CLASSIC_WATCH }
+            } else {
+                classic.send(message)
+            }
+        }
+
+        val watches = open.filter { it != CLASSIC_WATCH }
+        if (watches.isEmpty()) return
         val results = try {
             senderOrCreate().sendDataToPebble(WatchProtocol.WATCHAPP_UUID, message, watches)
         } catch (e: Exception) {
@@ -129,5 +179,7 @@ class PebbleBridge(
     companion object {
         private const val TAG = "PebbleBridge"
         private const val SEND_SPACING_MS = 300L
+        private val CLASSIC_WATCH = WatchIdentifier("pebblekit-classic")
+        private const val CLASSIC_IDLE_MS = 60 * 60_000L
     }
 }

@@ -358,12 +358,27 @@ private fun WatchCard(repository: MugRepository) {
             .flowOn(Dispatchers.IO)
     }.collectAsStateWithLifecycle(initialValue = emptyList<ConnectedWatch>())
     val openOn by repository.bridge.openOn.collectAsState()
+    val usingClassic by repository.bridge.usingClassic.collectAsState()
     var opening by remember { mutableStateOf(false) }
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Pebble", style = MaterialTheme.typography.titleMedium)
-            if (watches.isEmpty()) {
+            if (usingClassic) {
+                // No PebbleKit 2 app: the original Pebble app or Gadgetbridge, over PebbleKit Classic.
+                Text(
+                    if (openOn.isNotEmpty()) {
+                        "Emberio is open on your watch."
+                    } else {
+                        "Using the original Pebble app or Gadgetbridge. Install the Emberio watchapp " +
+                            "(emberio.pbw) from it, then open Emberio on your watch."
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedButton(onClick = { scope.launch { repository.bridge.openOnWatch() } }) {
+                    Text("Open Emberio on watch")
+                }
+            } else if (watches.isEmpty()) {
                 Text(
                     "No watch connected. Open the Pebble app, and install the Emberio watchapp (emberio.pbw) from it.",
                     style = MaterialTheme.typography.bodyMedium,
