@@ -3,9 +3,12 @@ name: Build
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
+  # Publish a release on GitHub (website or app) and this builds from its tag and attaches
+  # emberio.apk and emberio.pbw to it.
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -85,8 +88,8 @@ jobs:
           path: android/app/build/reports
 
   release:
-    name: Release
-    if: startsWith(github.ref, 'refs/tags/v')
+    name: Attach to release
+    if: github.event_name == 'release'
     needs: [watch, android]
     runs-on: ubuntu-24.04
     permissions:
@@ -95,9 +98,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-      - name: Publish
+      - name: Upload emberio.apk and emberio.pbw
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" emberio.pbw emberio.apk \
-            --repo "$GITHUB_REPOSITORY" --title "Emberio $GITHUB_REF_NAME" --generate-notes
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" emberio.pbw emberio.apk --clobber --repo "$GITHUB_REPOSITORY"

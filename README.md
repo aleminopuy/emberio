@@ -148,8 +148,10 @@ cd android
 ./gradlew testDebugUnitTest assembleDebug   # app/build/outputs/apk/debug/app-debug.apk
 ```
 
-CI (`.github/workflows/build.yml`) builds both on every push and attaches them to a GitHub
-release when you push a `v*` tag. To sign releases with your own key (so updates install over
+CI (`.github/workflows/build.yml`) builds both on every push. To release, publish a release on
+GitHub (website or app: **Releases → Draft a new release**, type a new tag such as `v1.0.1`,
+**Publish**); a few minutes later CI attaches `emberio.apk` and `emberio.pbw` to it, built from
+that tag. To sign releases with your own key (so updates install over
 the previous version), add repository secrets `EMBERIO_KEYSTORE_BASE64`,
 `EMBERIO_KEYSTORE_PASSWORD`, `EMBERIO_KEY_ALIAS` and `EMBERIO_KEY_PASSWORD`. Without them each
 build is signed with a throwaway key, and you'll need to uninstall before installing a newer one.
