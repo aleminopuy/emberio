@@ -1,0 +1,103 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    name: Watchapp + plugin
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Plugin tests
+        working-directory: watch
+        run: node --test test/*.test.cjs
+
+      - name: Install the Pebble SDK
+        run: |
+          pip install uv
+          uv tool install pebble-tool
+          yes | pebble sdk install latest
+
+      - name: Build
+        working-directory: watch
+        run: |
+          pebble build
+          cp build/watch.pbw build/emberio.pbw
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emberio-pbw
+          path: watch/build/emberio.pbw
+
+  android:
+    name: Android companion
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Android SDK 37
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;37.0.0" > /dev/null
+
+      # Optional: with these repository secrets, every release is signed with the same key, so
+      # updates install over the previous version. Without them the APK is signed with a
+      # throwaway debug key (uninstall the old one before installing a new build).
+      - name: Signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.EMBERIO_KEYSTORE_BASE64 }}
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/emberio.jks"
+          echo "EMBERIO_KEYSTORE_FILE=$RUNNER_TEMP/emberio.jks" >> "$GITHUB_ENV"
+
+      - name: Test and build
+        working-directory: android
+        env:
+          EMBERIO_KEYSTORE_PASSWORD: ${{ secrets.EMBERIO_KEYSTORE_PASSWORD }}
+          EMBERIO_KEY_ALIAS: ${{ secrets.EMBERIO_KEY_ALIAS }}
+          EMBERIO_KEY_PASSWORD: ${{ secrets.EMBERIO_KEY_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon testDebugUnitTest lintDebug assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/emberio.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emberio-apk
+          path: android/app/build/outputs/apk/release/emberio.apk
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: android-reports
+          path: android/app/build/reports
+
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [watch, android]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" emberio.pbw emberio.apk \
+            --repo "$GITHUB_REPOSITORY" --title "Emberio $GITHUB_REF_NAME" --generate-notes
