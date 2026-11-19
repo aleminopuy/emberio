@@ -92,6 +92,7 @@ class MugRepository(private val context: Context) {
     @Synchronized
     fun start() {
         refreshPermissions()
+        bridge.refreshTransport()
         if (!started) {
             started = true
             ContextCompat.registerReceiver(
@@ -120,6 +121,7 @@ class MugRepository(private val context: Context) {
         }
         estimator?.reset()
         client.disconnect()
+        bridge.stopTransport()
     }
 
     fun refreshPermissions() {

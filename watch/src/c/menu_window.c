@@ -4,6 +4,10 @@
 #include "state.h"
 #include "ui.h"
 
+#ifndef EMBERIO_VERSION
+#define EMBERIO_VERSION "dev"
+#endif
+
 typedef enum {
   SectionTemperature = 0,
   SectionAlerts,
@@ -125,7 +129,7 @@ static void prv_draw_row(GContext *ctx, const Layer *cell, MenuIndex *index, voi
       }
       break;
     case SectionAbout:
-      title = "Emberio 1.0";
+      title = "Emberio " EMBERIO_VERSION;
       snprintf(s_subtitle, sizeof(s_subtitle), "%s", s->name[0] ? s->name : "No mug yet");
       break;
     default:
