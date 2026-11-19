@@ -1,0 +1,17 @@
+# Pebble
+watch/build/
+watch/node_modules/
+watch/.lock-waf*
+
+# Android
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+*.iml
+.idea/
+
+# Signing keys never go in the repo
+*.jks
+*.keystore
