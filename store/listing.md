@@ -61,6 +61,12 @@ Unofficial. Not made by, or affiliated with, Ember Technologies.
 Open source (MIT): https://github.com/aleminopuy/emberio
 ```
 
+## Release notes (1.2.0)
+
+```
+• New launcher icon: an outline mug that matches the watch's own icons
+```
+
 ## Release notes (1.1.0)
 
 ```
