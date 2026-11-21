@@ -19,7 +19,7 @@ Pebble Time: perfect, charging, no mug yet, and the menu.
 
 ![Emberio states and menu on Pebble Time](docs/screenshots/time-states.png)
 
-*Emulator screenshots; the emulator draws the colours lighter than a real screen.*
+*Emulator screenshots, colour-corrected to look the way a real Pebble screen shows them.*
 
 ## What's in here
 

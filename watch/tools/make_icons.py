@@ -12,6 +12,8 @@ OUT = os.path.join(os.path.dirname(__file__), '..', 'resources', 'images')
 WHITE = (255, 255, 255, 255)
 BLACK = (0, 0, 0, 255)
 CLEAR = (0, 0, 0, 0)
+GREY_DARK = (85, 85, 85, 255)  # the two greys Pebble's own icons use
+GREY_LIGHT = (170, 170, 170, 255)
 
 
 def canvas(w, h):
@@ -44,23 +46,48 @@ def action_more():
 
 
 def menu_icon():
-    # A mug with steam, 25x25, black on transparent like Pebble's own launcher icons.
-    img, d = canvas(25, 25)
-    # Steam: two short S-curves.
-    for x in (8, 13):
-        d.point([(x, 1), (x + 1, 2), (x + 1, 3), (x, 4), (x, 5), (x + 1, 6)], fill=BLACK)
-    # Body: rounded at the bottom.
-    d.rectangle([3, 9, 18, 21], fill=BLACK)
-    d.point([(3, 21), (18, 21)], fill=CLEAR)
-    d.rectangle([4, 22, 17, 23], fill=BLACK)
-    d.point([(4, 23), (17, 23)], fill=CLEAR)
-    # Handle: a 2px loop on the right.
-    d.rectangle([19, 11, 22, 12], fill=BLACK)
-    d.rectangle([21, 11, 22, 18], fill=BLACK)
-    d.rectangle([19, 17, 22, 18], fill=BLACK)
-    # Rim highlight so it reads as a mug, not a box.
-    d.line([5, 11, 16, 11], fill=CLEAR)
-    save(img, 'menu_icon.png')
+    """A steaming mug in outline, 25x25, drawn like Pebble's own launcher icons: 2px black
+    strokes, hollow inside, with grey pixels smoothing the curves. The launcher tints it to suit
+    the row (black, or the highlighted row's text colour), as it does its own icons.
+
+    menu_icon.png is for colour watches; menu_icon~bw.png, without the greys, for black and white.
+    """
+    ss = 16  # drawn 16x larger, then scaled down: the coverage of each pixel gives the greys
+    big = Image.new('L', (25 * ss, 25 * ss), 0)
+    d = ImageDraw.Draw(big)
+    stroke = 2 * ss
+
+    def box(x0, y0, x1, y1):
+        # Pixel edges -> the big image's inclusive pixel box.
+        return [x0 * ss, y0 * ss, x1 * ss - 1, y1 * ss - 1]
+
+    # Handle: a loop whose left side runs inside the body's right side.
+    d.rounded_rectangle(box(16, 12, 23, 21), radius=3 * ss, outline=255, width=stroke)
+    # Body: square rim, rounded base.
+    d.rounded_rectangle(box(2, 9, 18, 24), radius=3 * ss, outline=255, width=stroke,
+                        corners=(False, False, True, True))
+    cover = big.resize((25, 25), Image.BOX)
+    color, _ = canvas(25, 25)
+    bw, _ = canvas(25, 25)
+    for y in range(25):
+        for x in range(25):
+            c = cover.getpixel((x, y)) / 255
+            if c >= 0.72:
+                color.putpixel((x, y), BLACK)
+            elif c >= 0.38:
+                color.putpixel((x, y), GREY_DARK)
+            elif c >= 0.15:
+                color.putpixel((x, y), GREY_LIGHT)
+            if c >= 0.5:
+                bw.putpixel((x, y), BLACK)
+    # Steam: two 2px wavy wisps over the middle of the mug, placed by hand (too small to smooth).
+    for left in (6, 11):
+        for y, shift in enumerate((1, 0, 0, 1, 1, 0), start=1):
+            for x in (left + shift, left + shift + 1):
+                color.putpixel((x, y), BLACK)
+                bw.putpixel((x, y), BLACK)
+    save(color, 'menu_icon.png')
+    save(bw, 'menu_icon~bw.png')
 
 
 def main():
