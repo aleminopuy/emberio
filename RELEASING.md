@@ -54,8 +54,9 @@ listing the source of truth and overwrite this one.
 1. Open the [Rebble Developer Portal](https://dev-portal.rebble.io) and sign in with your
    Rebble account.
 2. Submit a new app: upload `emberio.pbw`, the release notes (required the first time), name,
-   the "Rebble appstore" description from `store/listing.md`, category, icons, banner, and the
-   screenshots for every platform (required for apps).
+   the "Rebble appstore" description from `store/listing.md`, category, icons (small
+   `store/icon-48.png`, large `store/icon-144.png`), banner, and the screenshots for every platform
+   (required for apps).
 3. **Updates**: add a new release with the new `emberio.pbw`. Its version must be higher than
    the last one.
 

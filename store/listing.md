@@ -65,6 +65,7 @@ Open source (MIT): https://github.com/aleminopuy/emberio
 
 ```
 • New launcher icon: an outline mug that matches the watch's own icons
+• New appstore icon
 ```
 
 ## Release notes (1.1.0)
@@ -91,7 +92,8 @@ companion (GitHub releases), and the description links it.
 
 | What | File | Size |
 |---|---|---|
-| Small icon | `icon-80.png` | 80×80 |
+| Small icon (Pebble appstore) | `icon-80.png` | 80×80 |
+| Small icon (Rebble appstore) | `icon-48.png` | 48×48 |
 | Large icon | `icon-144.png` | 144×144 |
 | Banner (same one for every platform) | `banner.png` | 720×320 |
 | Screenshots, 5 per platform | `screenshots/<platform>_<n>.png` | the display's own size |
