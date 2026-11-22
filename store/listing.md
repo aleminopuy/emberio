@@ -61,6 +61,12 @@ Unofficial. Not made by, or affiliated with, Ember Technologies.
 Open source (MIT): https://github.com/aleminopuy/emberio
 ```
 
+## Release notes (1.3.0)
+
+```
+• The Android app's icon matches the new appstore icon
+```
+
 ## Release notes (1.2.0)
 
 ```
